@@ -1,0 +1,10 @@
+ python c2flow.py ./examples/simple ./examples/multiFunction ./examples/typeMissMatch.c ./examples/redefining ./examples/parseError
+
+ 
+ we create flow charts
+ ->
+ creates representation with annotation of errors 
+->
+takes c to tex then we compile with lua latex
+->
+

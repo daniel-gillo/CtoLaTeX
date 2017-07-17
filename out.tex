@@ -1,0 +1,150 @@
+\documentclass[tikz]{standalone}
+\usepackage{luatex85}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{graphs}
+\usetikzlibrary{graphdrawing}
+\usetikzlibrary{shapes}
+\usegdlibrary{layered}
+
+% Define the set of semi automated chart generation tools
+% Sets the standard shapes used in the chart to the colour requested
+\newcommand{\generateBlockStyles}[1]{
+    \tikzstyle{function} = 
+        [rectangle, draw, fill=#1!50, rounded corners, 
+        text centered, text width = 5em, minimum height=4em]
+    \tikzstyle{condition} = 
+        [diamond, draw, fill=#1!10, 
+        text centered, text width = 5em, minimum height=4em]
+    \tikzstyle{operation} = 
+        [rectangle, draw, fill=#1!20, rounded corners, 
+        text centered, text width = 5em, minimum height=4em]
+    \tikzstyle{parameters} = 
+        [draw, ellipse,fill=black!20, 
+        text centered, text width = 5em, minimum height=4em]
+    \tikzstyle{loop} = [draw, ellipse, fill=#1!30, 
+        text centered, text width = 5em, minimum height=4em]
+    \tikzstyle{callFuncStyle} = 
+        [rectangle, draw, fill=#1!20, rounded corners, 
+        text centered, text width = 5em, minimum height=4em]
+    \tikzstyle{blank} = []
+}
+% Generate the function declaration and parameters input
+% Usage \funcDec{#}{Name}{Parameter List}
+\newcommand{\funcDec}[3]{
+    \node [function] (#1) {#2};
+    \node [parameters] (parameters#1) {#3};
+    \draw (parameters#1) edge[->] (#1);
+}
+% Usage \ellipseDec{#}{contents}{Previous Node}
+\newcommand{\ellipseDec}[3]{
+    \node [parameters] (#1) {#2};
+    \draw (#3) edge[->] (#1);
+}
+% Conclusion Generator
+% Usage \funcConc{#}{Return Value(s)}{Previous Node}
+\newcommand{\funcConc}[3]{
+    \node [function] (#1) {return #2};
+    \draw (#3) edge[->] (#1);
+}
+% Variable Generator
+% Usage \varDec{#}{Variables}{Previous Node}
+\newcommand{\varDec}[3]{
+    \node [operation] (#1) {initiate variable(s): #2};
+    \draw (#3) edge[->] (#1);
+}
+% Generic Condition Generator
+% Usage \genericCond{#}{Condition}{Previous Node}
+\newcommand{\genericCond}[3]{
+    \node[condition] (#1) {#2};
+    \draw (#3) edge[->] (#1);
+}
+% While Loop Generator
+% Usage \whileDec{#}{Condition}{Previous Node}
+\newcommand{\whileDec}[3]{
+    \node[loop] (#1) {#2};
+    \draw (#3) edge[->] (#1);
+}
+% Generic Operation Generator
+% Usage \operationDec{#}{Data}{Previous Node}
+\newcommand{\operationDec}[3]{
+    \node[operation] (#1) {#2};
+    \draw (#3) edge[->] (#1);
+}
+% Call Upon Other Functions Generator
+% Usage \operationDec{#}{Name}{Parameters}{What is done with the return}{Previous Node}
+\newcommand{\callFunc}[6]{
+    \node[callFuncStyle] (callFunc#1) {#2};
+    \node [parameters] (funcParameters#1) {#3};
+    \node[operation] (#1) {which returns: #4};
+    \draw (funcParameters#1)  edge[->] (callFunc#1);
+    \draw (#5) edge[->] (callFunc#1);
+    \draw (callFunc#1) edge[->] (#1);
+}
+% add special edges
+% Usage \operationDec{from}{to}
+\newcommand{\edgeDraw}[2]{
+    \draw (#1) edge[->] (#2);
+}
+
+\begin{document}
+\generateBlockStyles{olive}
+\begin{tikzpicture}[node distance = 1cm and 1cm]
+    \begin{scope}[layered layout, sibling distance=25mm, every edge/.style={draw=black}]
+        % This is a main function. It's called final\_cal1
+        \funcDec{0}{Params: 'in'}{Function: final\_cal1}
+        % This is a return statement. It's id is 1
+        \funcConc{1}{ in  -- }{0}
+        % This is a code line
+        \operationDec{2}{End of Function}{1}
+        % This is the function footer. It has the return type.
+        \ellipseDec{2000004}{Return Type: int}{2}
+
+    \end{scope}
+\end{tikzpicture}
+\generateBlockStyles{orange}
+\begin{tikzpicture}[node distance = 1cm and 1cm]
+    \begin{scope}[layered layout, sibling distance=25mm, every edge/.style={draw=black}]
+        % This is a main function. It's called called
+        \funcDec{3}{Params: 'in'}{Function: called}
+        % This is a return statement. It's id is 4
+        \funcConc{4}{ final\_cal1  functionCall  in }{3}
+        % This is a code line
+        \operationDec{5}{End of Function}{4}
+        % This is the function footer. It has the return type.
+        \ellipseDec{2000010}{Return Type: int}{5}
+
+    \end{scope}
+\end{tikzpicture}
+\generateBlockStyles{purple}
+\begin{tikzpicture}[node distance = 1cm and 1cm]
+    \begin{scope}[layered layout, sibling distance=25mm, every edge/.style={draw=black}]
+        % This is a main function. It's called ca1ls
+        \funcDec{6}{Params: }{Function: ca1ls}
+        % This is a code line
+        \operationDec{7}{ int  i  =  42 }{6}
+        % This is a code line
+        \operationDec{8}{ float  f  =  23.000000 }{7}
+        % This is an if statement. It's id is 9
+        \genericCond{9}{Condition}{8}
+        \operationDec{9I}{If  called  functionCall  i  ==  41 }{9}
+        % This is a code line
+        \operationDec{13}{ f  =  1.000000 }{9I}
+        % This is an else statement. It's id is 11
+        \operationDec{11}{Else}{9I}
+        % This is a code line
+        \operationDec{12}{ f  =  0.000000 }{11}
+        % This is a return statement. It's id is 14
+        \funcConc{14}{ f }{9}
+        % This is a code line
+        \operationDec{15}{End of Function}{14}
+        % This is the function footer. It has the return type.
+        \ellipseDec{2000030}{Return Type: float}{15}
+        % This is an edge. It connects end nodes.
+        \edgeDraw{12}{14}
+        % This is an edge. It connects end nodes.
+        \edgeDraw{13}{14}
+
+    \end{scope}
+\end{tikzpicture}
+\end{document}

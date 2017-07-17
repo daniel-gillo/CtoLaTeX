@@ -1,0 +1,145 @@
+\documentclass[tikz]{standalone}
+\usepackage{luatex85}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{graphs}
+\usetikzlibrary{graphdrawing}
+\usetikzlibrary{shapes}
+\usegdlibrary{layered}
+
+% Define the set of semi automated chart generation tools
+% Sets the standard shapes used in the chart to the colour requested
+\newcommand{\generateBlockStyles}[1]{
+    \tikzstyle{function} = 
+        [rectangle, draw, fill=#1!50, rounded corners, 
+        text centered, text width = 5em, minimum height=4em]
+    \tikzstyle{condition} = 
+        [diamond, draw, fill=#1!10, 
+        text centered, text width = 5em, minimum height=4em]
+    \tikzstyle{operation} = 
+        [rectangle, draw, fill=#1!20, rounded corners, 
+        text centered, text width = 5em, minimum height=4em]
+    \tikzstyle{parameters} = 
+        [draw, ellipse,fill=black!20, 
+        text centered, text width = 5em, minimum height=4em]
+    \tikzstyle{loop} = [draw, ellipse, fill=#1!30, 
+        text centered, text width = 5em, minimum height=4em]
+    \tikzstyle{callFuncStyle} = 
+        [rectangle, draw, fill=#1!20, rounded corners, 
+        text centered, text width = 5em, minimum height=4em]
+    \tikzstyle{blank} = []
+}
+% Generate the function declaration and parameters input
+% Usage \funcDec{#}{Name}{Parameter List}
+\newcommand{\funcDec}[3]{
+    \node [function] (#1) {#2};
+    \node [parameters] (parameters#1) {#3};
+    \draw (parameters#1) edge[->] (#1);
+}
+% Conclusion Generator
+% Usage \funcConc{#}{Return Value(s)}{Previous Node}
+\newcommand{\funcConc}[3]{
+    \node [function] (#1) {return #2};
+    \draw (#3) edge[->] (#1);
+}
+% Variable Generator
+% Usage \varDec{#}{Variables}{Previous Node}
+\newcommand{\varDec}[3]{
+    \node [operation] (#1) {initiate variable(s): #2};
+    \draw (#3) edge[->] (#1);
+}
+% Generic Condition Generator
+% Usage \genericCond{#}{Condition}{Previous Node}
+\newcommand{\genericCond}[3]{
+    \node[condition] (#1) {#2};
+    \draw (#3) edge[->] (#1);
+}
+% While Loop Generator
+% Usage \whileDec{#}{Condition}{Previous Node}
+\newcommand{\whileDec}[3]{
+    \node[loop] (#1) {#2};
+    \draw (#3) edge[->] (#1);
+}
+% Generic Operation Generator
+% Usage \operationDec{#}{Data}{Previous Node}
+\newcommand{\operationDec}[3]{
+    \node[operation] (#1) {#2};
+    \draw (#3) edge[->] (#1);
+}
+% Call Upon Other Functions Generator
+% Usage \operationDec{#}{Name}{Parameters}{What is done with the return}{Previous Node}
+\newcommand{\callFunc}[6]{
+    \node[callFuncStyle] (callFunc#1) {#2};
+    \node [parameters] (funcParameters#1) {#3};
+    \node[operation] (#1) {which returns: #4};
+    \draw (funcParameters#1)  edge[->] (callFunc#1);
+    \draw (#5) edge[->] (callFunc#1);
+    \draw (callFunc#1) edge[->] (#1);
+}
+% add special edges
+% Usage \operationDec{from}{to}
+\newcommand{\edgeDraw}[2]{
+    \draw (#1) edge[->] (#2);
+}
+
+\begin{document}
+\generateBlockStyles{darkgray}
+\begin{tikzpicture}[node distance = 1cm and 1cm]
+    \begin{scope}[layered layout, sibling distance=25mm, every edge/.style={draw=black}]
+        % This is a main function. It's called final\_cal1
+        \funcDec{0}{final\_cal1}{'int', 'in'}
+        % This is a return statement. It's id is 1
+        \funcConc{1}{ in  -- }{0}
+        % This is an error line
+        \operationDec{2}{Error! Type Mismatch!}{1}
+        % This is a code line
+        \operationDec{3}{End of Function}{1}
+
+    \end{scope}
+\end{tikzpicture}
+\generateBlockStyles{red}
+\begin{tikzpicture}[node distance = 1cm and 1cm]
+    \begin{scope}[layered layout, sibling distance=25mm, every edge/.style={draw=black}]
+        % This is a main function. It's called called
+        \funcDec{4}{called}{'int', 'in'}
+        % This is a return statement. It's id is 5
+        \funcConc{5}{ final\_cal1  functionCall  in }{4}
+        % This is an error line
+        \operationDec{6}{Error! Type Mismatch!}{5}
+        % This is a code line
+        \operationDec{7}{End of Function}{5}
+
+    \end{scope}
+\end{tikzpicture}
+\generateBlockStyles{magenta}
+\begin{tikzpicture}[node distance = 1cm and 1cm]
+    \begin{scope}[layered layout, sibling distance=25mm, every edge/.style={draw=black}]
+        % This is a main function. It's called ca1ls
+        \funcDec{8}{ca1ls}{'float'}
+        % This is a code line
+        \operationDec{9}{ int  i  =  42 }{8}
+        % This is a code line
+        \operationDec{10}{ float  f  =  23.000000 }{9}
+        % This is an if statement. It's id is 11
+        \genericCond{11}{Condition}{10}
+        \operationDec{11I}{If  called  functionCall  i  ==  41 }{11}
+        % This is an error line
+        \operationDec{12}{Error! Type Mismatch!}{11}
+        % This is a code line
+        \operationDec{16}{ f  =  1.000000 }{11I}
+        % This is an else statement. It's id is 14
+        \operationDec{14}{Otherwise}{11I}
+        % This is a code line
+        \operationDec{15}{ f  =  0.000000 }{14}
+        % This is a return statement. It's id is 17
+        \funcConc{17}{ f }{11}
+        % This is a code line
+        \operationDec{18}{End of Function}{17}
+        % This is an edge. It connects end nodes.
+        \edgeDraw{15}{17}
+        % This is an edge. It connects end nodes.
+        \edgeDraw{16}{17}
+
+    \end{scope}
+\end{tikzpicture}
+\end{document}
